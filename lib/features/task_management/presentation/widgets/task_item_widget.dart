@@ -44,6 +44,8 @@ class TaskItemWidget extends StatelessWidget {
           ),
           title: Text(
             task.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               decoration: task.isCompleted ? TextDecoration.lineThrough : null,
             ),
@@ -52,12 +54,16 @@ class TaskItemWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (task.description != null && task.description!.isNotEmpty)
-                Text(task.description!),
+                Text(
+                  task.description!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               Row(
                 children: [
                   PriorityChipWidget(priority: task.priority),
+                  const SizedBox(width: 16),
                   if (task.dueDate != null) ...[
-                    const SizedBox(width: 8),
                     const Icon(Icons.calendar_today,
                         size: 16, color: Colors.grey),
                     const SizedBox(width: 2),
