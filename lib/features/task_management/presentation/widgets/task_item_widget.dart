@@ -17,16 +17,18 @@ class TaskItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isCompleted = task.isCompleted;
     return Dismissible(
       key: ValueKey(task.id),
-      direction: DismissDirection.endToStart,
+      direction:
+          isCompleted ? DismissDirection.none : DismissDirection.endToStart,
       background: Container(
         color: Colors.red,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
-      onDismissed: (_) => onDelete(),
+      onDismissed: isCompleted ? null : (_) => onDelete(),
       child: Card(
         child: ListTile(
           onTap: onTap,
@@ -56,7 +58,8 @@ class TaskItemWidget extends StatelessWidget {
                   PriorityChipWidget(priority: task.priority),
                   if (task.dueDate != null) ...[
                     const SizedBox(width: 8),
-                    Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                    const Icon(Icons.calendar_today,
+                        size: 16, color: Colors.grey),
                     const SizedBox(width: 2),
                     Text(
                       '${task.dueDate!.day}/${task.dueDate!.month}/${task.dueDate!.year}',
@@ -69,7 +72,8 @@ class TaskItemWidget extends StatelessWidget {
           ),
           trailing: IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: onTap,
+            onPressed: isCompleted ? null : onTap,
+            color: isCompleted ? Colors.grey : null,
           ),
         ),
       ),

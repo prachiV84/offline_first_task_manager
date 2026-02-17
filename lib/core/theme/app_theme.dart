@@ -26,4 +26,31 @@ class AppTheme {
       border: OutlineInputBorder(),
     ),
   );
+
+  static final darkTheme = ThemeData(
+    colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.blue, brightness: Brightness.dark),
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    scaffoldBackgroundColor: Colors.black,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
+      elevation: 0,
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Colors.blue,
+      foregroundColor: Colors.white,
+    ),
+    cardTheme: CardThemeData(
+      color: Colors.grey[900],
+      elevation: 2,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+    ),
+    inputDecorationTheme: const InputDecorationTheme(
+      border: OutlineInputBorder(),
+    ),
+  );
 }

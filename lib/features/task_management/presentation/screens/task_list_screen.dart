@@ -8,80 +8,190 @@ import '../widgets/filter_chips_widget.dart';
 import '../widgets/task_item_widget.dart';
 import 'add_edit_task_screen.dart';
 
-class TaskListScreen extends StatelessWidget {
+class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
+
+  @override
+  State<TaskListScreen> createState() => _TaskListScreenState();
+}
+
+class _TaskListScreenState extends State<TaskListScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String _sortBy = 'date';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task Manager'),
+        title: const Text('Task Master'),
+        centerTitle: true,
         elevation: 0,
-      ),
-      body: Column(
-        children: [
-          // Filter chips
-          BlocBuilder<TaskCubit, TaskState>(
-            builder: (context, state) {
-              if (state is TaskLoaded) {
-                return FilterChipsWidget(
-                  currentFilter: state.currentFilter,
-                  onFilterChanged: (filter) {
-                    context.read<TaskCubit>().changeFilter(filter);
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    setState(() {
+                      _sortBy = value;
+                    });
                   },
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-          // Task list
-          Expanded(
-            child: BlocBuilder<TaskCubit, TaskState>(
-              builder: (context, state) {
-                return switch (state) {
-                  TaskInitial() => const Center(
-                      child: Text('Welcome! Loading your tasks...'),
-                    ),
-                  TaskLoading() => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  TaskError(:final message) => Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error, size: 64, color: Colors.red),
-                          const SizedBox(height: 16),
-                          Text(message, textAlign: TextAlign.center),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () =>
-                                context.read<TaskCubit>().loadTasks(),
-                            child: const Text('Retry'),
-                          ),
-                        ],
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                        value: 'date', child: Text('Sort by Due Date')),
+                    const PopupMenuItem(
+                        value: 'priority', child: Text('Sort by Priority')),
+                  ],
+                  icon: Icon(
+                    Icons.filter_alt_outlined,
+                    color: Theme.of(context).iconTheme.color,
+                    size: 32,
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search tasks by title...',
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Theme.of(context).cardColor,
                       ),
                     ),
-                  TaskOperationInProgress(
-                    :final currentTasks,
-                    :final currentFilter
-                  ) =>
-                    _buildTaskList(
-                      context,
-                      _filterTasks(currentTasks, currentFilter),
-                      isLoading: true,
-                    ),
-                  TaskLoaded(:final filteredTasks) => filteredTasks.isEmpty
-                      ? const EmptyStateWidget()
-                      : _buildTaskList(context, filteredTasks),
-                };
-              },
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
+      body: SafeArea(
+        child: Column(
+          children: [
+            BlocBuilder<TaskCubit, TaskState>(
+              builder: (context, state) {
+                if (state is TaskLoaded) {
+                  return FilterChipsWidget(
+                    currentFilter: state.currentFilter,
+                    onFilterChanged: (filter) {
+                      context.read<TaskCubit>().changeFilter(filter);
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+            Expanded(
+              child: BlocBuilder<TaskCubit, TaskState>(
+                builder: (context, state) {
+                  List filtered = [];
+                  if (state is TaskLoaded) {
+                    filtered = state.filteredTasks
+                        .where((task) => task.title
+                            .toLowerCase()
+                            .contains(_searchQuery.toLowerCase()))
+                        .toList();
+                    if (_sortBy == 'priority') {
+                      filtered.sort((a, b) =>
+                          b.priority.value.compareTo(a.priority.value));
+                    } else if (_sortBy == 'date') {
+                      filtered.sort((a, b) {
+                        if (a.dueDate == null && b.dueDate == null) return 0;
+                        if (a.dueDate == null) return 1;
+                        if (b.dueDate == null) return -1;
+                        return a.dueDate!.compareTo(b.dueDate!);
+                      });
+                    } else if (_sortBy == 'today') {
+                      final today = DateTime.now();
+                      filtered = filtered
+                          .where((task) =>
+                              task.dueDate != null &&
+                              task.dueDate!.year == today.year &&
+                              task.dueDate!.month == today.month &&
+                              task.dueDate!.day == today.day)
+                          .toList();
+                    } else if (_sortBy == 'upcoming') {
+                      final now = DateTime.now();
+                      filtered = filtered
+                          .where((task) =>
+                              task.dueDate != null &&
+                              task.dueDate!.isAfter(now))
+                          .toList();
+                    }
+                  }
+                  return switch (state) {
+                    TaskInitial() => const Center(
+                        child: Text('Welcome! Loading your tasks...'),
+                      ),
+                    TaskLoading() => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    TaskError(:final message) => Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error,
+                                size: 64, color: Colors.red),
+                            const SizedBox(height: 16),
+                            Text(message, textAlign: TextAlign.center),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () =>
+                                  context.read<TaskCubit>().loadTasks(),
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    TaskOperationInProgress(
+                      :final currentTasks,
+                      :final currentFilter
+                    ) =>
+                      _buildTaskList(
+                        context,
+                        _filterTasks(currentTasks, currentFilter),
+                        isLoading: true,
+                      ),
+                    TaskLoaded() => filtered.isEmpty
+                        ? const EmptyStateWidget()
+                        : _buildTaskList(context, filtered),
+                  };
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _navigateToAddTask(context),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Add Task', style: TextStyle(fontSize: 16)),
       ),
     );
   }
@@ -110,7 +220,7 @@ class TaskListScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Task deleted'),
+                    content: const Text('Task deleted'),
                     action: SnackBarAction(
                       label: 'Undo',
                       onPressed: () {
