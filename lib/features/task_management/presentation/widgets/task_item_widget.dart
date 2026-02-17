@@ -1,0 +1,78 @@
+import 'package:flutter/material.dart';
+import '../../domain/entities/task_entity.dart';
+import 'priority_chip_widget.dart';
+
+class TaskItemWidget extends StatelessWidget {
+  final TaskEntity task;
+  final VoidCallback onTap;
+  final VoidCallback onToggleComplete;
+  final VoidCallback onDelete;
+  const TaskItemWidget({
+    super.key,
+    required this.task,
+    required this.onTap,
+    required this.onToggleComplete,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dismissible(
+      key: ValueKey(task.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      onDismissed: (_) => onDelete(),
+      child: Card(
+        child: ListTile(
+          onTap: onTap,
+          leading: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, anim) =>
+                ScaleTransition(scale: anim, child: child),
+            child: Checkbox(
+              key: ValueKey(task.isCompleted),
+              value: task.isCompleted,
+              onChanged: (_) => onToggleComplete(),
+            ),
+          ),
+          title: Text(
+            task.title,
+            style: TextStyle(
+              decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+            ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (task.description != null && task.description!.isNotEmpty)
+                Text(task.description!),
+              Row(
+                children: [
+                  PriorityChipWidget(priority: task.priority),
+                  if (task.dueDate != null) ...[
+                    const SizedBox(width: 8),
+                    Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                    const SizedBox(width: 2),
+                    Text(
+                      '${task.dueDate!.day}/${task.dueDate!.month}/${task.dueDate!.year}',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: onTap,
+          ),
+        ),
+      ),
+    );
+  }
+}
