@@ -36,8 +36,21 @@ A powerful, feature-rich task management application built with **Flutter**, **C
 - 🎭 **Smooth Animations** - Checkbox transitions, card animations, and fades
 
 ---
-
 ## 📸 Screenshots
+
+<div align="center">
+
+![Add Task](screenshots/1_add_task.png)
+
+![Task List](screenshots/2_task_list.png)
+
+![Edit Task](screenshots/3_edit_task.png)
+
+![Dark Mode](screenshots/4_dark_mode.png)
+
+![Filter](screenshots/5_filter.png)
+
+</div>
 
 ### Light Mode
 ```
