@@ -21,9 +21,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Task Manager - Clean Architecture',
+      title: 'Task Manager ',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       home: BlocProvider(
         create: (_) => di.sl<TaskCubit>()..loadTasks(),
         child: const TaskListScreen(),
