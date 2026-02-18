@@ -14,9 +14,9 @@ class FilterChipsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
       child: Wrap(
-        spacing: 8.0,
+        spacing: 12.0,
         children: TaskFilter.values.map((filter) {
           final bool isSelected = currentFilter == filter;
 

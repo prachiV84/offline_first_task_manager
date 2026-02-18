@@ -6,6 +6,8 @@ class CustomCalendarDatePicker extends StatelessWidget {
   final VoidCallback onPressed;
   final String label;
   final bool isRequired;
+  final DateTime? firstDate;
+  final DateTime? lastDate;
 
   const CustomCalendarDatePicker({
     super.key,
@@ -13,6 +15,8 @@ class CustomCalendarDatePicker extends StatelessWidget {
     required this.onPressed,
     this.label = 'Date',
     this.isRequired = false,
+    this.firstDate,
+    this.lastDate,
   });
 
   @override
