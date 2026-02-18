@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../../domain/entities/task_entity.dart';
 import '../../domain/enums/task_priority.dart';
@@ -33,18 +34,33 @@ class TaskModel extends HiveObject {
   @HiveField(7)
   final DateTime updatedAt;
 
+  @HiveField(8)
+  final int? startTimeHour;
+
+  @HiveField(9)
+  final int? startTimeMinute;
+
+  @HiveField(10)
+  final int? endTimeHour;
+
+  @HiveField(11)
+  final int? endTimeMinute;
+
   TaskModel({
     required this.id,
     required this.title,
-    this.description,
-    this.dueDate,
+    required this.description,
+    required this.dueDate,
     required this.priority,
     required this.isCompleted,
     required this.createdAt,
     required this.updatedAt,
+    required this.startTimeHour,
+    required this.startTimeMinute,
+    required this.endTimeHour,
+    required this.endTimeMinute,
   });
 
-  /// Convert data model to domain entity
   TaskEntity toEntity() {
     return TaskEntity(
       id: id,
@@ -55,10 +71,15 @@ class TaskModel extends HiveObject {
       isCompleted: isCompleted,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      startTime: startTimeHour != null && startTimeMinute != null
+          ? TimeOfDay(hour: startTimeHour!, minute: startTimeMinute!)
+          : null,
+      endTime: endTimeHour != null && endTimeMinute != null
+          ? TimeOfDay(hour: endTimeHour!, minute: endTimeMinute!)
+          : null,
     );
   }
 
-  /// Create data model from domain entity
   factory TaskModel.fromEntity(TaskEntity entity) {
     return TaskModel(
       id: entity.id,
@@ -69,6 +90,10 @@ class TaskModel extends HiveObject {
       isCompleted: entity.isCompleted,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+      startTimeHour: entity.startTime?.hour,
+      startTimeMinute: entity.startTime?.minute,
+      endTimeHour: entity.endTime?.hour,
+      endTimeMinute: entity.endTime?.minute,
     );
   }
 }

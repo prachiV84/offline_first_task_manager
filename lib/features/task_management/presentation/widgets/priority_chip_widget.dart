@@ -20,8 +20,9 @@ class PriorityChipWidget extends StatelessWidget {
         break;
     }
     return Chip(
-      label: Text(priority.displayName),
-      backgroundColor: color.withOpacity(0.15),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      label: Text(priority.displayName, style: const TextStyle(fontSize: 12)),
+      backgroundColor: color.withValues(alpha: 0.15),
       labelStyle: TextStyle(color: color, fontWeight: FontWeight.bold),
     );
   }

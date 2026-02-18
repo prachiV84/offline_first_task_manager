@@ -25,13 +25,17 @@ class TaskModelAdapter extends TypeAdapter<TaskModel> {
       isCompleted: fields[5] as bool,
       createdAt: fields[6] as DateTime,
       updatedAt: fields[7] as DateTime,
+      startTimeHour: fields[8] as int?,
+      startTimeMinute: fields[9] as int?,
+      endTimeHour: fields[10] as int?,
+      endTimeMinute: fields[11] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, TaskModel obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +51,15 @@ class TaskModelAdapter extends TypeAdapter<TaskModel> {
       ..writeByte(6)
       ..write(obj.createdAt)
       ..writeByte(7)
-      ..write(obj.updatedAt);
+      ..write(obj.updatedAt)
+      ..writeByte(8)
+      ..write(obj.startTimeHour)
+      ..writeByte(9)
+      ..write(obj.startTimeMinute)
+      ..writeByte(10)
+      ..write(obj.endTimeHour)
+      ..writeByte(11)
+      ..write(obj.endTimeMinute);
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:task_manager_clean/features/task_management/presentation/widgets/calendar_date_picker_widget.dart';
+import 'package:task_manager_clean/features/task_management/presentation/widgets/calender_time_range_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/task_entity.dart';
 import '../../domain/enums/task_priority.dart';
@@ -19,6 +20,8 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   DateTime? _dueDate;
+  TimeOfDay? _startTime;
+  TimeOfDay? _endTime;
   TaskPriority _priority = TaskPriority.medium;
   bool _isCompleted = false;
 
@@ -30,6 +33,8 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
     _descriptionController =
         TextEditingController(text: task?.description ?? '');
     _dueDate = task?.dueDate;
+    _startTime = task?.startTime;
+    _endTime = task?.endTime;
     _priority = task?.priority ?? TaskPriority.medium;
     _isCompleted = task?.isCompleted ?? false;
   }
@@ -43,6 +48,20 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
 
   void _saveTask() {
     if (_formKey.currentState?.validate() ?? false) {
+      // Validate time range if both times are set
+      if (_startTime != null && _endTime != null) {
+        final startMinutes = _startTime!.hour * 60 + _startTime!.minute;
+        final endMinutes = _endTime!.hour * 60 + _endTime!.minute;
+        if (startMinutes >= endMinutes) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('End time must be after start time'),
+            ),
+          );
+          return;
+        }
+      }
+
       final isEdit = widget.task != null;
       final id = isEdit ? widget.task!.id : const Uuid().v4();
       final now = DateTime.now();
@@ -53,6 +72,8 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
             ? null
             : _descriptionController.text.trim(),
         dueDate: _dueDate,
+        startTime: _startTime,
+        endTime: _endTime,
         priority: _priority,
         isCompleted: _isCompleted,
         createdAt: isEdit ? widget.task!.createdAt : now,
@@ -93,6 +114,7 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
           key: _formKey,
           child: ListView(
             children: [
+              // Title field
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(labelText: 'Title *'),
@@ -101,26 +123,62 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
                     : null,
               ),
               const SizedBox(height: 16),
+
+              // Description field
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(labelText: 'Description'),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Due Date'),
-                subtitle: Text(_dueDate == null
-                    ? 'Not set'
-                    : DateFormat.yMMMd().format(_dueDate!)),
-                trailing: IconButton(
-                  icon: const Icon(Icons.calendar_today),
-                  onPressed: _pickDueDate,
-                ),
+
+              // Calendar date picker
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Due Date',
+                    style: Theme.of(context).textTheme.labelSmall,
+                    textAlign: TextAlign.start,
+                  ),
+                  const SizedBox(height: 8),
+                  CustomCalendarDatePicker(
+                    selectedDate: _dueDate,
+                    onPressed: _pickDueDate,
+                    label: 'Due Date',
+                    isRequired: true,
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
+
+              // Time range picker (only show if date is selected)
+              if (_dueDate != null)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Time Range',
+                      style: Theme.of(context).textTheme.labelSmall,
+                      textAlign: TextAlign.start,
+                    ),
+                    const SizedBox(height: 8),
+                    TimeRangePicker(
+                      startTime: _startTime,
+                      endTime: _endTime,
+                      onStartTimeChanged: (time) {
+                        setState(() => _startTime = time);
+                      },
+                      onEndTimeChanged: (time) {
+                        setState(() => _endTime = time);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+
+              // Priority dropdown
               DropdownButtonFormField<TaskPriority>(
-                value: _priority,
                 decoration: const InputDecoration(labelText: 'Priority'),
                 items: TaskPriority.values.map((priority) {
                   return DropdownMenuItem(
@@ -133,6 +191,7 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
                 },
               ),
               const SizedBox(height: 16),
+
               if (widget.task != null)
                 CheckboxListTile(
                   value: _isCompleted,
@@ -141,6 +200,8 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
                   title: const Text('Mark as completed'),
                 ),
               const SizedBox(height: 24),
+
+              //  Save button/Add button
               ElevatedButton(
                 onPressed: _saveTask,
                 child: Text(widget.task == null ? 'Add Task' : 'Save Changes'),
